@@ -25,7 +25,10 @@ public class TimerNode extends Thread {
                 for(int i=0; i<MAX_USERS; i++){ //colocar max_users
                     timer[i]--;
                 }
-                Thread.sleep(100);
+                
+                System.out.println("Timer[1] :" + timer[1]);
+                
+                Thread.sleep(Node.BASE_UNIT);
             }
         } catch(InterruptedException e) {
             System.out.println("sleep interrupted");      

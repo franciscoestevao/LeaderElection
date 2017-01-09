@@ -27,14 +27,11 @@ public class Node {
                                 SUSPICION       =    2,
             
                                 DONT_CARE   =    0,
-                                TIMER           =  200,
                                 MAX_USERS       = 1000,
             
                                 // time units to repeat while(leader() == id), em ms
-                                TIME_UNITS      = 2000;
-    
-    
-    private static final String FAILURE         = "ERROR";
+                                TIME_UNITS      = 10,
+                                BASE_UNIT       = 100;
     
         
     static boolean      DEBUG = false;
@@ -71,7 +68,7 @@ public class Node {
             timeout     = new int[MAX_USERS];
             
             for(int i=0; i < MAX_USERS; i++)
-                timer[i] = TIMER;
+                timer[i] = TIME_UNITS * BASE_UNIT;
             
         
         
@@ -107,13 +104,13 @@ public class Node {
      */
     public static void processMessage(String msg){
         
-        // Nao sei se é suposto criar nova thread aqui        
-        new Thread()
-        {
-            @Override
-            public void run() {
-                
-                Thread.currentThread().setName("Process Message Thread " + Thread.currentThread().getId());
+//        // Nao sei se é suposto criar nova thread aqui        
+//        new Thread()
+//        {
+//            @Override
+//            public void run() {
+//                
+//                Thread.currentThread().setName("Process Message Thread " + Thread.currentThread().getId());
 
                 lock.lock();
                 try {
@@ -126,10 +123,10 @@ public class Node {
                     lock.unlock();
                 }
             
-            }
+//            }
             
             
-        }.start();
+//        }.start();
         
     }
     
@@ -176,7 +173,8 @@ public class Node {
             
             // Se for para o processo ou broadcast
             if(id_dst == 0 || id_dst == Node.id){
-                System.out.println("[Multicast Receiver] Received from " + id_src + ": " + toProcess[2]);
+                if (DEBUG)
+                    System.out.println("[Multicast Receiver] Received from " + id_src + ": " + toProcess[2]);
                // System.out.println("Returning" + msg); 
                 //System.out.println("Queue actualizada: " + queue.toString());
                 return toProcess;
@@ -212,24 +210,32 @@ public class Node {
         if (!contenders.isEmpty()){
 
             for(i=0; i<contenders.size(); i++){
-                
-                int iID = contenders.get(i);
-                
-                // if contenders[i] == leastSusp
-                //System.out.println("Retrieving contenders"+i+" = "+k);
-                if(contenders.contains(iID) && iID != -1){
-                    if (suspLevel[iID] < leastSusp){
-
-                        //leastSusp = suspLevel[contenders[i]]
-                        leastSusp = suspLevel[iID];
-
-                        // leastSuspId = contenders[i]
-                        leastSuspId = iID;
-
-                        //System.out.println("suspLevel "+contenders.get(i)+":"+suspLevel[contenders.get(i)]);
-
+                int iID = 0;
+                while(true){
+                    try {
+                        iID = contenders.get(i);
+                    } catch (NullPointerException | IndexOutOfBoundsException ne){
+                        continue;
                     }
+                    break;
                 }
+                   
+
+                    // if contenders[i] == leastSusp
+                    //System.out.println("Retrieving contenders"+i+" = "+k);
+                    if(contenders.contains(iID) && iID != -1){
+                        if (suspLevel[iID] < leastSusp){
+
+                            //leastSusp = suspLevel[contenders[i]]
+                            leastSusp = suspLevel[iID];
+
+                            // leastSuspId = contenders[i]
+                            leastSuspId = iID;
+
+                            //System.out.println("suspLevel "+contenders.get(i)+":"+suspLevel[contenders.get(i)]);
+
+                        }
+                    }
             }
 
         }
@@ -283,7 +289,7 @@ public class Node {
                 // Este sleep é o equivalente a fazer esta parte periodicamente
                 // como está numa thread nova, nao há problemas de bloqueio
                 try {
-                    Thread.sleep(TIME_UNITS);                    
+                    Thread.sleep(TIME_UNITS * BASE_UNIT);                    
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -313,8 +319,16 @@ public class Node {
         
         
         for(int k=0; k < contenders.size(); k++){ /* CHECK FOR TIMEOUTS */
+            int kID = 0;
+            while(true){
+                try {
+                    kID = contenders.get(k);
+                } catch (NullPointerException ne) {
+                    continue;
+                }
+                break;
+            }
             
-            int kID = contenders.get(k);
             
             if(!contenders.contains(kID)){
                 // The process is not a contender
@@ -332,7 +346,7 @@ public class Node {
 
                 System.out.println("[Node " + id + "] Timeout of process " + kID + " expired!");
                 
-                Node.timeout[kID] = Node.timeout[kID]+1;
+                Node.timeout[kID] = Node.timeout[kID]+BASE_UNIT;
                 
                 message = Integer.toString(SUSPICION) + "," + Integer.toString(id) + "," + 
                         Integer.toString(suspLevel[id]) + "," + Integer.toString(kID) + "," + 
@@ -381,7 +395,7 @@ public class Node {
                     mTag            = Integer.parseInt(parts[0]);
                     mID             = Integer.parseInt(parts[1]);
                     mSuspLevel      = Integer.parseInt(parts[2]);
-                    mSilent       = Integer.parseInt(parts[3]);
+                    mSilent         = Integer.parseInt(parts[3]);
                     mHbc            = Integer.parseInt(parts[4]);
                     
                     if (mID !=  id_src){
@@ -411,8 +425,8 @@ public class Node {
                         lastStopLeader[mID] = 0;
 
                         
-                        // ???????????? timeout[mID] = TIME_UNITS;
-                        TimerNode.timer[mID] = TIMER;
+                        timeout[mID] = TIME_UNITS * BASE_UNIT;
+                        //TimerNode.timer[mID] = TIME_UNITS;
                         
 
 
@@ -437,8 +451,8 @@ public class Node {
                         
                         System.out.println("Received HEARTBEAT from " + mID);
 
-                        
-                            TimerNode.timer[id_src] = TIMER;
+                        // Set timer to timeout (linha 13)
+                        TimerNode.timer[mID] = timeout[mID];
                         
                         
                         // adiciona mID ao fim da lista dos contenders
@@ -459,13 +473,11 @@ public class Node {
                         System.out.println("Received STOP_LEADER from: " + mID);
                         
                         lastStopLeader[mID] = mHbc;
-                        
-                        
-                        TimerNode.timer[id_src] = 0;
 
                         if(contenders.indexOf(mID)>=0 && mID > 0){
                             System.out.println("REMOVED process " + contenders.get(contenders.indexOf(mID)) + " from contenders");
-                            contenders.remove(contenders.indexOf(mID));
+                                Node.contenders.remove(Node.contenders.get(Node.contenders.indexOf(mID)));
+                            
                         }
                      
                         continue;
