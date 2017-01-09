@@ -57,6 +57,9 @@ public class Node {
     private static final Queue queue = new LinkedList();
     public static Communication link;
     
+    
+    public static int lastLeader;
+    
     public Node(int id) {
         
         suspLevel       = new int[MAX_USERS];
@@ -273,6 +276,8 @@ public class Node {
                 //System.out.println("LeastSusp:::: "+leastSusp+" -- "+leastSuspId);
                 
                 System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] I am the leader");
+                // System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Mensagens trocadas até agora: " + n_msg);
+                
                 
                 if(!nextPeriod){
                     nextPeriod = true;
@@ -477,8 +482,11 @@ public class Node {
                             
                             // suspLevel[mID] = mID;       // PORQUÊ? comentei
                         }
-                        
-                        System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Process " + leader() + " is the leader");
+                        if (lastLeader != leader()){
+                            System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Process " + leader() + " is the leader");
+                            lastLeader = leader();
+                            System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Mensagens trocadas até agora: " + n_msg);
+                        }
                         
                         continue;
                     }
