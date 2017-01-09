@@ -27,18 +27,17 @@ public class Node {
                                 SUSPICION       =    2,
             
                                 DONT_CARE   =    0,
-                                TIMER           =  100,
+                                TIMER           =  200,
                                 MAX_USERS       = 1000,
             
                                 // time units to repeat while(leader() == id), em ms
-                                TIME_UNITS      = 5000;
+                                TIME_UNITS      = 2000;
     
     
     private static final String FAILURE         = "ERROR";
     
         
-    static boolean  TEMPO = false,
-                    DEBUG = false;
+    static boolean      DEBUG = false;
     
     
     static int id;
@@ -61,12 +60,12 @@ public class Node {
     public Node(int id) {
         
         suspLevel       = new int[MAX_USERS];
-        suspLevel[id]   = 0;
+        suspLevel[id]   = id;
         contenders      = new ArrayList();
         members         = new ArrayList();
         lastStopLeader  = new int[MAX_USERS];
         
-        if (TEMPO){
+
             
             timer       = new int[MAX_USERS];
             timeout     = new int[MAX_USERS];
@@ -74,7 +73,7 @@ public class Node {
             for(int i=0; i < MAX_USERS; i++)
                 timer[i] = TIMER;
             
-        }
+        
         
         contenders.add(id);
         members.add(id);
@@ -193,10 +192,10 @@ public class Node {
     
     /**
      * Segundo o artigo:
-     * return (l such that (-,l) = lex_min({(susp_level_i[j],j)}_j pertence a contenders_i))
-     * lex_min(X) returns the smallest pair in X according to lexicographical order
-     * 
-     * Por outras palavras, retorna o id do processo (pertencente aos contenders) que tem o susp_level menor
+ return (l such that (-,l) = lex_min({(susp_level_i[kID],kID)}_j pertence a contenders_i))
+ lex_min(X) returns the smallest pair in X according to lexicographical order
+ 
+ Por outras palavras, retorna o id do processo (pertencente aos contenders) que tem o susp_level menor
      * 
      * @return leader id
      */
@@ -205,33 +204,36 @@ public class Node {
         int i=0;
         
        // Will contain the smallest suspLevel value. Starts with suspLevel of myself
-        int leastSusp = suspLevel[contenders.get(i)];
+        int leastSusp = 99999;//suspLevel[contenders.get(i)];
         
         // Will contain the the id of the process with the smallest susp_level value. Starts with my id
-        int leastSuspId = contenders.get(i);
+        int leastSuspId = 9999;//contenders.get(i);
         
         if (!contenders.isEmpty()){
 
             for(i=0; i<contenders.size(); i++){
                 
+                int iID = contenders.get(i);
+                
                 // if contenders[i] == leastSusp
                 //System.out.println("Retrieving contenders"+i+" = "+k);
-                if (suspLevel[contenders.get(i)] < leastSusp){
-                    
-                    //leastSusp = suspLevel[contenders[i]]
-                    leastSusp = suspLevel[contenders.get(i)];
-                    
-                    // leastSuspId = contenders[i]
-                    leastSuspId = contenders.get(i);
-                    
-                    //System.out.println("suspLevel "+contenders.get(u)+":"+suspLevel[contenders.get(u)]);
+                if(contenders.contains(iID) && iID != -1){
+                    if (suspLevel[iID] < leastSusp){
 
+                        //leastSusp = suspLevel[contenders[i]]
+                        leastSusp = suspLevel[iID];
+
+                        // leastSuspId = contenders[i]
+                        leastSuspId = iID;
+
+                        //System.out.println("suspLevel "+contenders.get(i)+":"+suspLevel[contenders.get(i)]);
+
+                    }
                 }
-
             }
 
         }
-
+        //System.out.println("Leader should be: "+leastSuspId);
         return leastSuspId;
         
     }
@@ -247,9 +249,9 @@ public class Node {
         while(true){
             
             nextPeriod = false;
+                
+            checkTimeouts();
             
-            if(TEMPO)
-                checkTimeouts();
             /*for(int u=0; u<contenders.size(); u++){
                 System.out.println("suspLevel "+contenders.get(u)+":"+suspLevel[contenders.get(u)]);
             }*/
@@ -258,7 +260,8 @@ public class Node {
             // System.out.println("time1: "+TimerNode.timer[1]);
              
             while(leader() == id){
-            
+            System.out.println("Contenders:::: " + contenders);
+            //System.out.println("LeastSusp:::: "+leastSusp+" -- "+leastSuspId);
                 System.out.println("[Node " + id + "] I am the leader");
                 
                 if(!nextPeriod){
@@ -308,34 +311,36 @@ public class Node {
       
         String message;
         
-        if (DEBUG)
-            System.out.println(contenders + "---" + suspLevel[1] + " " + suspLevel[2] + " " + suspLevel[3] + " " + 
-                    suspLevel[4] + " ");
         
         for(int k=0; k < contenders.size(); k++){ /* CHECK FOR TIMEOUTS */
             
-            //System.out.println("LeastSusp:: "+leader());
-            if(contenders.get(k) == id){
-                // My ID doesn't matter
-                continue;
-            }
+            int kID = contenders.get(k);
             
-            if(!contenders.contains(contenders.get(k))){
+            if(!contenders.contains(kID)){
                 // The process is not a contender
                 continue;
             }
             
-            int j = contenders.get(k);
+            //System.out.println("LeastSusp:: "+leader());
+            if(contenders.size()>k && k>=0)
+                if(kID == id){
+                    // My ID doesn't matter
+                    continue;
+                }
             
-            if(TimerNode.timer[j] == 0){
-                                
-                timeout[j] = timeout[j]+1;
+            if(TimerNode.timer[kID] <= 0 && contenders.contains(kID)){
+
+                System.out.println("[Node " + id + "] Timeout of process " + kID + " expired!");
+                
+                Node.timeout[kID] = Node.timeout[kID]+1;
+                
                 message = Integer.toString(SUSPICION) + "," + Integer.toString(id) + "," + 
-                        Integer.toString(suspLevel[id]) + "," + Integer.toString(j) + "," + 
+                        Integer.toString(suspLevel[id]) + "," + Integer.toString(kID) + "," + 
                         Integer.toString(0);
                 link.broadcast(message);
-                
-                contenders.remove(k);                
+                System.out.println("[Node " + id + "] Sent SUSPICION");
+                if(k>=0 && k<contenders.size())
+                    contenders.remove(k);
             }
         }  
         
@@ -398,17 +403,17 @@ public class Node {
                         System.out.println(mID + " added to members");
 
                         // comentei esta linha porque acho que está mal
-                        // suspLevel[mID] = mID;
+                        suspLevel[mID] = mID;
 
                         // e substituí-a por esta
-                        suspLevel[mID] = 0;
+                        // suspLevel[mID] = 0;
 
                         lastStopLeader[mID] = 0;
 
-                        if(TEMPO){
-                            timeout[mID] = TIME_UNITS;
-                            TimerNode.timer[mID] = TIMER;
-                        }
+                        
+                        // ???????????? timeout[mID] = TIME_UNITS;
+                        TimerNode.timer[mID] = TIMER;
+                        
 
 
                     }
@@ -432,7 +437,7 @@ public class Node {
                         
                         System.out.println("Received HEARTBEAT from " + mID);
 
-                        if(TEMPO)
+                        
                             TimerNode.timer[id_src] = TIMER;
                         
                         
@@ -455,14 +460,14 @@ public class Node {
                         
                         lastStopLeader[mID] = mHbc;
                         
-                        if(TEMPO)
-                            TimerNode.timer[id_src] = 0;
+                        
+                        TimerNode.timer[id_src] = 0;
 
-                        if(contenders.contains(mID)){
+                        if(contenders.indexOf(mID)>=0 && mID > 0){
                             System.out.println("REMOVED process " + contenders.get(contenders.indexOf(mID)) + " from contenders");
-                            contenders.remove(contenders.indexOf(mID)); 
+                            contenders.remove(contenders.indexOf(mID));
                         }
-
+                     
                         continue;
 
                     }

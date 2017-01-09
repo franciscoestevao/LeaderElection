@@ -30,6 +30,8 @@ public class LeaderElection {
         
         else{
             
+            new TimerNode().start();
+            
             if (args[0].matches("[0-9]+")){
                 id = Integer.parseInt(args[0]);
                 
