@@ -27,10 +27,10 @@ public class Node {
                                 SUSPICION       =    2,
             
                                 DONT_CARE   =    0,
-                                MAX_USERS       = 1000,
+                                MAX_USERS       = 50,
             
                                 // time units to repeat while(leader() == id), em ms
-                                TIME_UNITS      = 10,
+                                TIME_UNITS      = 100,
                                 BASE_UNIT       = 100;
     
         
@@ -68,7 +68,7 @@ public class Node {
             timeout     = new int[MAX_USERS];
             
             for(int i=0; i < MAX_USERS; i++)
-                timer[i] = TIME_UNITS * BASE_UNIT;
+                timer[i] = TIME_UNITS;
             
         
         
@@ -197,9 +197,9 @@ public class Node {
      * 
      * @return leader id
      */
-    public int leader(){
+    public static int leader(){
         
-        int i=0;
+        int i;
         
        // Will contain the smallest suspLevel value. Starts with suspLevel of myself
         int leastSusp = 99999;//suspLevel[contenders.get(i)];
@@ -266,8 +266,9 @@ public class Node {
             // System.out.println("time1: "+TimerNode.timer[1]);
              
             while(leader() == id){
-            System.out.println("Contenders:::: " + contenders);
-            //System.out.println("LeastSusp:::: "+leastSusp+" -- "+leastSuspId);
+                System.out.println("[Node " + id + "] Contenders: " + contenders);
+                //System.out.println("LeastSusp:::: "+leastSusp+" -- "+leastSuspId);
+                
                 System.out.println("[Node " + id + "] I am the leader");
                 
                 if(!nextPeriod){
@@ -302,6 +303,7 @@ public class Node {
                       Integer.toString(suspLevel[id]) + "," + Integer.toString(silent) +
                       "," + Integer.toString(hbc);
                 System.out.println("[Node " + id + "] Sent STOP LEADER");
+                System.out.println("[Node " + id + "] I am not the leader anymore");
                 link.broadcast(message);
                 
             }
@@ -346,7 +348,7 @@ public class Node {
 
                 System.out.println("[Node " + id + "] Timeout of process " + kID + " expired!");
                 
-                Node.timeout[kID] = Node.timeout[kID]+BASE_UNIT;
+                Node.timeout[kID] = Node.timeout[kID]+1;
                 
                 message = Integer.toString(SUSPICION) + "," + Integer.toString(id) + "," + 
                         Integer.toString(suspLevel[id]) + "," + Integer.toString(kID) + "," + 
@@ -425,7 +427,7 @@ public class Node {
                         lastStopLeader[mID] = 0;
 
                         
-                        timeout[mID] = TIME_UNITS * BASE_UNIT;
+                        timeout[mID] = TIME_UNITS;
                         //TimerNode.timer[mID] = TIME_UNITS;
                         
 
@@ -449,7 +451,7 @@ public class Node {
                     /*heartbeat*/
                     if((mTag == HEARTBEAT) && (lastStopLeader[mID] < mHbc)){
                         
-                        System.out.println("Received HEARTBEAT from " + mID);
+                        System.out.println("[Node " + id + "] Received HEARTBEAT from " + mID);
 
                         // Set timer to timeout (linha 13)
                         TimerNode.timer[mID] = timeout[mID];
@@ -459,23 +461,25 @@ public class Node {
                         if(!contenders.contains(mID)){
                             contenders.add(mID);
                             
-                            System.out.println(mID + " added to the contenders");
+                            System.out.println("[Node " + id + "] Process " + mID + " proclaims leadership and was added to contenders!");
                             
                             // suspLevel[mID] = mID;       // PORQUÊ? comentei
                         }
-
+                        
+                        System.out.println("[Node " + id + "] Process " + leader() + " is the leader");
+                        
                         continue;
                     }
 
                     /*stop_leader*/
                     if((mTag == STOP_LEADER) && (lastStopLeader[mID] < mHbc)){
 
-                        System.out.println("Received STOP_LEADER from: " + mID);
+                        System.out.println("[Node " + id + "] Received STOP_LEADER from: " + mID);
                         
                         lastStopLeader[mID] = mHbc;
 
                         if(contenders.indexOf(mID)>=0 && mID > 0){
-                            System.out.println("REMOVED process " + contenders.get(contenders.indexOf(mID)) + " from contenders");
+                            System.out.println("[Node " + id + "] REMOVED process " + contenders.get(contenders.indexOf(mID)) + " from contenders");
                                 Node.contenders.remove(Node.contenders.get(Node.contenders.indexOf(mID)));
                             
                         }
@@ -488,7 +492,7 @@ public class Node {
 
                     if((mTag == SUSPICION) && (mSilent == id)){
                         
-                        System.out.println("Received SUSPICION from: " + mID);
+                        System.out.println("[Node " + id + "] Received SUSPICION from: " + mID);
                         
                         if (DEBUG)
                             System.out.println("My SuspLevel increased");

@@ -22,11 +22,11 @@ public class TimerNode extends Thread {
 
         try {
             while(true){
-                for(int i=0; i<MAX_USERS; i++){ //colocar max_users
+                for(int i=1; i<MAX_USERS; i++){ //colocar max_users
                     timer[i]--;
                 }
                 
-                System.out.println("Timer[1] :" + timer[1]);
+                // System.out.println("Timer[1] :" + timer[1]);
                 
                 Thread.sleep(Node.BASE_UNIT);
             }

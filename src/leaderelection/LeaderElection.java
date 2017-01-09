@@ -5,6 +5,8 @@
  */
 package leaderelection;
 
+import java.util.Random;
+
 
 /**
  *
@@ -13,14 +15,15 @@ package leaderelection;
 public class LeaderElection {
 
     
-    public static int id = 0;
+    public static int   id      = 0;
+    static Random       DELAY   = new Random();
     
     /**
      * @param args the command line arguments
+     * @throws java.lang.InterruptedException
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         // TODO code application logic here
-        
         
         
         if (args.length==0){
@@ -50,6 +53,8 @@ public class LeaderElection {
                 System.exit(1);
             }
         }
+        
+        Thread.sleep((DELAY.nextInt(3000) + 1));
         
         Node node = new Node(id);
         

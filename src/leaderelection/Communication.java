@@ -155,7 +155,7 @@ public final class Communication implements Runnable {
                     System.err.println("Erro ao enviar pacote UDP");
                 }
 
-                System.out.println("Sent: " + mensagem);
+                // System.out.println("Sent: " + mensagem);
             }
         }.start();
 
