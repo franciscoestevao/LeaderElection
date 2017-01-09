@@ -5,6 +5,12 @@
  */
 package leaderelection;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Random;
 
 
@@ -15,14 +21,19 @@ import java.util.Random;
 public class LeaderElection {
 
     
-    public static int   id      = 0;
-    static Random       DELAY   = new Random();
+    public static int                   id          = 0;
+    public static Random                DELAY       = new Random();
+    public static int                   n_msg       = 0;
+    public static SimpleDateFormat      sdf         = new SimpleDateFormat("HH:mm:ss.SSS");
+    public static Timestamp             timestamp   ;
+
     
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
+     * @throws java.io.FileNotFoundException
      */
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, FileNotFoundException {
         // TODO code application logic here
         
         
@@ -33,7 +44,6 @@ public class LeaderElection {
         
         else{
             
-            new TimerNode().start();
             
             if (args[0].matches("[0-9]+")){
                 id = Integer.parseInt(args[0]);
@@ -54,7 +64,26 @@ public class LeaderElection {
             }
         }
         
+        // Descomentar para imprimir para ficheiro (executar como admin)
+//        PrintStream out = new PrintStream(new FileOutputStream("node" + id + ".txt"));
+//        System.setOut(out);
+
+
+        
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Numero total de mensagens: " + n_msg);
+                
+            }
+        });
+        
         Thread.sleep((DELAY.nextInt(3000) + 1));
+        
+        
+        new TimerNode().start();
         
         Node node = new Node(id);
         

@@ -5,6 +5,7 @@
  */
 package leaderelection;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +13,8 @@ import java.util.Queue;
 import java.util.concurrent.locks.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static leaderelection.LeaderElection.n_msg;
+import static leaderelection.LeaderElection.sdf;
 
 /**
  *
@@ -266,10 +269,10 @@ public class Node {
             // System.out.println("time1: "+TimerNode.timer[1]);
              
             while(leader() == id){
-                System.out.println("[Node " + id + "] Contenders: " + contenders);
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Contenders: " + contenders);
                 //System.out.println("LeastSusp:::: "+leastSusp+" -- "+leastSuspId);
                 
-                System.out.println("[Node " + id + "] I am the leader");
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] I am the leader");
                 
                 if(!nextPeriod){
                     nextPeriod = true;
@@ -283,8 +286,10 @@ public class Node {
                             Integer.toString(suspLevel[id])+ "," + Integer.toString(silent) + "," + 
                             Integer.toString(hbc);
 
-                System.out.println("[Node " + id + "] Sent HEARTBEAT");
+                
                 Node.link.broadcast(message);
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Sent HEARTBEAT");
+                n_msg++;
                 
 
                 // Este sleep é o equivalente a fazer esta parte periodicamente
@@ -302,9 +307,12 @@ public class Node {
                 message = Integer.toString(tagID) + "," + Integer.toString(id)+ "," + 
                       Integer.toString(suspLevel[id]) + "," + Integer.toString(silent) +
                       "," + Integer.toString(hbc);
-                System.out.println("[Node " + id + "] Sent STOP LEADER");
-                System.out.println("[Node " + id + "] I am not the leader anymore");
+                
                 link.broadcast(message);
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Sent STOP LEADER");
+                n_msg++;
+                
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] I am not the leader anymore");
                 
             }
             
@@ -346,15 +354,18 @@ public class Node {
             
             if(TimerNode.timer[kID] <= 0 && contenders.contains(kID)){
 
-                System.out.println("[Node " + id + "] Timeout of process " + kID + " expired!");
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Timeout of process " + kID + " expired!");
                 
                 Node.timeout[kID] = Node.timeout[kID]+1;
                 
                 message = Integer.toString(SUSPICION) + "," + Integer.toString(id) + "," + 
                         Integer.toString(suspLevel[id]) + "," + Integer.toString(kID) + "," + 
                         Integer.toString(0);
+                
                 link.broadcast(message);
-                System.out.println("[Node " + id + "] Sent SUSPICION");
+                System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Sent SUSPICION to " + kID);
+                n_msg++;
+                
                 if(k>=0 && k<contenders.size())
                     contenders.remove(k);
             }
@@ -405,6 +416,7 @@ public class Node {
                         continue;
                     }
                         
+                    n_msg++;
 
 
                     /* Treating the message */
@@ -416,7 +428,7 @@ public class Node {
 
                         // adiciona k aos membros
                         members.add(mID);
-                        System.out.println(mID + " added to members");
+                        System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Added process " + mID + " to members");
 
                         // comentei esta linha porque acho que está mal
                         suspLevel[mID] = mID;
@@ -451,7 +463,7 @@ public class Node {
                     /*heartbeat*/
                     if((mTag == HEARTBEAT) && (lastStopLeader[mID] < mHbc)){
                         
-                        System.out.println("[Node " + id + "] Received HEARTBEAT from " + mID);
+                        System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Received HEARTBEAT from process " + mID);
 
                         // Set timer to timeout (linha 13)
                         TimerNode.timer[mID] = timeout[mID];
@@ -461,12 +473,12 @@ public class Node {
                         if(!contenders.contains(mID)){
                             contenders.add(mID);
                             
-                            System.out.println("[Node " + id + "] Process " + mID + " proclaims leadership and was added to contenders!");
+                            System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Process " + mID + " proclaims leadership and was added to contenders!");
                             
                             // suspLevel[mID] = mID;       // PORQUÊ? comentei
                         }
                         
-                        System.out.println("[Node " + id + "] Process " + leader() + " is the leader");
+                        System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Process " + leader() + " is the leader");
                         
                         continue;
                     }
@@ -474,12 +486,12 @@ public class Node {
                     /*stop_leader*/
                     if((mTag == STOP_LEADER) && (lastStopLeader[mID] < mHbc)){
 
-                        System.out.println("[Node " + id + "] Received STOP_LEADER from: " + mID);
+                        System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Received STOP_LEADER from process " + mID);
                         
                         lastStopLeader[mID] = mHbc;
 
                         if(contenders.indexOf(mID)>=0 && mID > 0){
-                            System.out.println("[Node " + id + "] REMOVED process " + contenders.get(contenders.indexOf(mID)) + " from contenders");
+                            System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Removed process " + contenders.get(contenders.indexOf(mID)) + " from contenders");
                                 Node.contenders.remove(Node.contenders.get(Node.contenders.indexOf(mID)));
                             
                         }
@@ -492,7 +504,7 @@ public class Node {
 
                     if((mTag == SUSPICION) && (mSilent == id)){
                         
-                        System.out.println("[Node " + id + "] Received SUSPICION from: " + mID);
+                        System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Received SUSPICION from process " + mID);
                         
                         if (DEBUG)
                             System.out.println("My SuspLevel increased");
