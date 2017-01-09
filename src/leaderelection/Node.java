@@ -190,10 +190,10 @@ public class Node {
     
     /**
      * Segundo o artigo:
- return (l such that (-,l) = lex_min({(susp_level_i[kID],kID)}_j pertence a contenders_i))
- lex_min(X) returns the smallest pair in X according to lexicographical order
- 
- Por outras palavras, retorna o id do processo (pertencente aos contenders) que tem o susp_level menor
+     * return (l such that (-,l) = lex_min({(susp_level_i[kID],kID)}_j pertence a contenders_i))
+     * lex_min(X) returns the smallest pair in X according to lexicographical order
+     * 
+     * Por outras palavras, retorna o id do processo (pertencente aos contenders) que tem o susp_level menor
      * 
      * @return leader id
      */
@@ -325,7 +325,7 @@ public class Node {
             while(true){
                 try {
                     kID = contenders.get(k);
-                } catch (NullPointerException ne) {
+                } catch (NullPointerException | IndexOutOfBoundsException ne){
                     continue;
                 }
                 break;
