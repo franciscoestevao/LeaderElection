@@ -296,7 +296,6 @@ public class Node {
                 System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Sent HEARTBEAT");
                 n_msg++;
                 
-
                 // Este sleep é o equivalente a fazer esta parte periodicamente
                 // como está numa thread nova, nao há problemas de bloqueio
                 try {
@@ -370,7 +369,7 @@ public class Node {
                 link.broadcast(message);
                 System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Sent SUSPICION to " + kID);
                 n_msg++;
-                
+               
                 if(k>=0 && k<contenders.size())
                     contenders.remove(k);
             }
@@ -422,7 +421,7 @@ public class Node {
                     }
                         
                     n_msg++;
-
+                  
 
                     /* Treating the message */
                     // Posição 0 de members contem o numero de membros
