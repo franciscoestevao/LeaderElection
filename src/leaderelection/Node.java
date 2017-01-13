@@ -110,14 +110,6 @@ public class Node {
      */
     public static void processMessage(String msg){
         
-//        // Nao sei se é suposto criar nova thread aqui        
-//        new Thread()
-//        {
-//            @Override
-//            public void run() {
-//                
-//                Thread.currentThread().setName("Process Message Thread " + Thread.currentThread().getId());
-
                 lock.lock();
                 try {
                     queue.add(msg);
@@ -128,11 +120,7 @@ public class Node {
                 } finally {
                     lock.unlock();
                 }
-            
-//            }
-            
-            
-//        }.start();
+
         
     }
     
@@ -181,8 +169,7 @@ public class Node {
             if(id_dst == 0 || id_dst == Node.id){
                 if (DEBUG)
                     System.out.println("[Multicast Receiver] Received from " + id_src + ": " + toProcess[2]);
-               // System.out.println("Returning" + msg); 
-                //System.out.println("Queue actualizada: " + queue.toString());
+               
                 return toProcess;
             }             
                             
@@ -208,10 +195,10 @@ public class Node {
         int i;
         
        // Will contain the smallest suspLevel value. Starts with suspLevel of myself
-        int leastSusp = 99999;//suspLevel[contenders.get(i)];
+        int leastSusp = 99999;
         
         // Will contain the the id of the process with the smallest susp_level value. Starts with my id
-        int leastSuspId = 9999;//contenders.get(i);
+        int leastSuspId = 9999;
         
         if (!contenders.isEmpty()){
 
@@ -227,8 +214,6 @@ public class Node {
                 }
                    
 
-                    // if contenders[i] == leastSusp
-                    //System.out.println("Retrieving contenders"+i+" = "+k);
                     if(contenders.contains(iID) && iID != -1){
                         if (suspLevel[iID] < leastSusp){
 
@@ -237,15 +222,13 @@ public class Node {
 
                             // leastSuspId = contenders[i]
                             leastSuspId = iID;
-
-                            //System.out.println("suspLevel "+contenders.get(i)+":"+suspLevel[contenders.get(i)]);
-
+                            
                         }
                     }
             }
 
         }
-        //System.out.println("Leader should be: "+leastSuspId);
+        
         return leastSuspId;
         
     }
@@ -263,13 +246,6 @@ public class Node {
             nextPeriod = false;
                 
             checkTimeouts();
-            
-            /*for(int u=0; u<contenders.size(); u++){
-                System.out.println("suspLevel "+contenders.get(u)+":"+suspLevel[contenders.get(u)]);
-            }*/
-            
-            // System.out.println("leader is: " + leader());
-            // System.out.println("time1: "+TimerNode.timer[1]);
              
             while(leader() == id){
                 System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Contenders: " + contenders);
@@ -333,13 +309,16 @@ public class Node {
         
         
         for(int k=0; k < contenders.size(); k++){ /* CHECK FOR TIMEOUTS */
+            
             int kID = 0;
+            
             while(true){
                 try {
                     kID = contenders.get(k);
                 } catch (NullPointerException | IndexOutOfBoundsException ne){
                     continue;
                 }
+                
                 break;
             }
             
@@ -348,8 +327,7 @@ public class Node {
                 // The process is not a contender
                 continue;
             }
-            
-            //System.out.println("LeastSusp:: "+leader());
+           
             if(contenders.size()>k && k>=0)
                 if(kID == id){
                     // My ID doesn't matter
@@ -433,21 +411,13 @@ public class Node {
                         // adiciona k aos membros
                         members.add(mID);
                         System.out.println("[Node " + id + " - " + sdf.format(new Timestamp(System.currentTimeMillis())) + "] Added process " + mID + " to members");
-
-                        // comentei esta linha porque acho que está mal
+                        
                         suspLevel[mID] = mID;
-
-                        // e substituí-a por esta
-                        // suspLevel[mID] = 0;
 
                         lastStopLeader[mID] = 0;
 
-                        
                         timeout[mID] = TIME_UNITS;
-                        //TimerNode.timer[mID] = TIME_UNITS;
                         
-
-
                     }
 
                     if (DEBUG){

@@ -26,9 +26,9 @@ import java.util.logging.Logger;
  */
 public final class Communication implements Runnable {
 
-    private int mcPort;
+    private final int mcPort;
     public boolean running;
-    private String mcIPStr;
+    private final String mcIPStr;
     private InetAddress mcIPAddress;
     private MulticastSocket mcSocket;
     int id;
@@ -155,7 +155,6 @@ public final class Communication implements Runnable {
                     System.err.println("Erro ao enviar pacote UDP");
                 }
 
-                // System.out.println("Sent: " + mensagem);
             }
         }.start();
 

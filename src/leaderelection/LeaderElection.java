@@ -5,10 +5,7 @@
  */
 package leaderelection;
 
-import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Random;
@@ -34,8 +31,6 @@ public class LeaderElection {
      * @throws java.io.FileNotFoundException
      */
     public static void main(String[] args) throws InterruptedException, FileNotFoundException {
-        // TODO code application logic here
-        
         
         if (args.length==0){
             System.out.println("Usage: java -jar path ID");
